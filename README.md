@@ -22,7 +22,7 @@ A personal repository for managing useful PowerShell scripts. These scripts are 
    .\script_name.ps1
 
 **Note:** If your system blocks script execution due to policy restrictions, you can temporarily bypass it with:  
-powershell -ExecutionPolicy Bypass -File /path/to/script.ps1
+```powershell -ExecutionPolicy Bypass -File /path/to/script.ps1```
 
 ⚠️ **Security Warning:**  
 Using `-ExecutionPolicy Bypass` disables important safety checks. **Only do this if you fully understand what the script does and trust its source. Never run unverified scripts—especially those downloaded from the internet—as they may contain malicious code.**
