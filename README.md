@@ -1,46 +1,81 @@
-# ⚡ Powershell_Scripts
+# ⚡ PowerShell Scripts
 
-A personal repository for managing useful PowerShell scripts. These scripts are designed to automate tasks, configure systems, and streamline workflows on Windows environments.
+This repository contains a personal collection of PowerShell utilities designed to automate and troubleshoot system-level tasks on Windows 11. Each script is tailored for reliability, clarity, and ease of use, with a focus on solving real-world issues encountered during daily system operation.
 
-## 📁 Repository Contents
+---
+### ⚠️ Execution Policy Warning
 
-- `open_ms_edge_in_fullscreen.ps1`  
-  Launches Microsoft Edge in fullscreen mode. Ideal for kiosk setups or distraction-free browsing.
+🚫 Do not globally disable PowerShell’s execution policy (e.g., by setting it to `Unrestricted` or `Bypass` system-wide). Doing so can expose your system to malicious scripts and unintended changes. Instead, use the `-ExecutionPolicy Bypass` flag only when launching trusted scripts, and preferably within a controlled `.bat` file as shown below.
 
-- `Intel_Ethernet_Controller_I225_V_Recovery.ps1`  
-  Detects if the Intel I225-V Ethernet adapter is disabled and attempts recovery without requiring a system reboot. The script disables power management settings, toggles the adapter state, and provides real-time status updates. Useful for resolving intermittent network drops on systems using the I225-V controller.
+🛡️ Recommended safety practices:
 
-## 🚀 Usage
+- ⚠️🔍 Always inspect scripts before running them, especially if downloaded from the internet  
+- ⚠️🔐 Run scripts with elevated permissions only when necessary  
+- ⚠️⚙️ Use `-ExecutionPolicy Bypass` only for specific, trusted scripts—not as a permanent system setting  
+- ⚠️🧼 Keep your system and antivirus software up to date  
+- ⚠️🧪 Consider using `-WhatIf` or `-TestMode` switches when available to preview script behavior  
+---
 
-1. Clone the repository:  
-   git clone https://github.com/SilentWoof/Powershell_Scripts.git
+## 📌 Included Scripts
 
-2. Navigate to the desired script:  
-   cd Powershell_Scripts
+### 🛠️ Intel Ethernet Controller I225-V Recovery Utility
 
-3. Run the script in PowerShell:  
-   .\script_name.ps1
+📄 File: Intel_Ethernet_Controller_I225_V_Recovery.ps1  
+🎯 Purpose: Recovers and re-enables the Intel I225-V Ethernet adapter when it becomes disabled or unresponsive.
 
-**Note:** If your system blocks script execution due to policy restrictions, you can temporarily bypass it with:  
-```powershell -ExecutionPolicy Bypass -File /path/to/script.ps1```
+#### 🔧 Features
 
-⚠️ **Security Warning:**  
-Using `-ExecutionPolicy Bypass` disables important safety checks. **Only do this if you fully understand what the script does and trust its source. Never run unverified scripts—especially those downloaded from the internet—as they may contain malicious code.**
+- ✅ Detects the adapter status and attempts recovery if disabled  
+- 🧰 Disables power management settings in the registry to prevent future dropouts  
+- 🛑 Handles protected registry keys gracefully to avoid script failure  
+- 📝 Logs all actions and outcomes to a file on the desktop  
+- 🧪 Includes a `-TestMode` switch for safe dry runs  
+- 📊 Displays a clean summary and exits automatically after user confirmation  
 
-🔒 **Administrator Privileges:**  
-Some scripts may require elevated permissions. If prompted, right-click PowerShell and select “Run as Administrator.”
+#### 🚀 How to Run
 
-**IMPORTANT:** Running scripts as Administrator gives them full access to your system. Always inspect the script’s contents before executing. If you're unsure what it does, seek expert advice or run it in a safe, isolated environment first.
+To bypass PowerShell’s execution policy restrictions only for this script, it is launched via a `.bat` file with elevated permissions. This `.bat` file is not included in the repository, but you can create one using the following template:
+```batch
+@echo off  
+set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
+powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
+```
+To run the script in test mode (no changes made), modify the `.bat` file like so:
+```batch
+@echo off  
+set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
+powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\" -TestMode' -Verb RunAs"
+```
+📌 Note: The `.bat` file assumes the PowerShell script is stored in `%USERPROFILE%\Powershell_Scripts\`
 
-## 📜 License
+#### 📁 Log File
 
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## 🙌 Contributions
-
-This is a personal utility repository, but suggestions and improvements are welcome via pull requests or issues.
+A log file named `AdapterRecoveryLog.txt` is created on the user's desktop, recording each recovery attempt with timestamps and status updates.
 
 ---
 
-Made with ⚙️ and 🧠 by SilentWoof  
-GitHub: https://github.com/SilentWoof
+### 🌐 Open Microsoft Edge in Fullscreen
+
+📄 File: open_ms_edge_in_fullscreen.ps1  
+🎯 Purpose: Automatically launches Microsoft Edge in fullscreen mode, intended for use with a local Ping Monitor application.
+
+#### 🔧 Features
+
+- ⏱️ Waits for system startup and Ping Monitor initialization  
+- 🌍 Opens Edge to a specified local URL  
+- 🎹 Simulates an F11 keypress to enter fullscreen mode  
+- 🧩 Uses .NET interop to trigger the fullscreen shortcut  
+
+This script is ideal for kiosk-style setups or monitoring dashboards that require a clean, fullscreen browser view.
+
+---
+
+## 🧰 Notes
+
+- 🪟 All scripts are designed to run on Windows 11 with administrative privileges  
+- 🧾 Scripts are documented with inline comments for clarity and customization  
+- 🧭 The `.bat` launcher for the Ethernet recovery script is referenced for convenience but not included in the repository  
+
+---
+
+💡 Feel free to fork, adapt, or extend these tools for your own use. Contributions and suggestions are welcome!
