@@ -18,7 +18,7 @@ This repository contains a personal collection of PowerShell utilities designed 
 
 ## 📌 Included Scripts
 
-### 🛠️ Intel Ethernet Controller I225-V Recovery Utility
+### 1. 🛠️ Intel Ethernet Controller I225-V Recovery Utility
 
 📄 File: Intel_Ethernet_Controller_I225_V_Recovery.ps1  
 🎯 Purpose: Recovers and re-enables the Intel I225-V Ethernet adapter when it becomes disabled or unresponsive.
@@ -54,7 +54,7 @@ A log file named `AdapterRecoveryLog.txt` is created on the user's desktop, reco
 
 ---
 
-### 🌐 Open Microsoft Edge in Fullscreen
+### 2. 🌐 Open Microsoft Edge in Fullscreen
 
 📄 File: open_ms_edge_in_fullscreen.ps1  
 🎯 Purpose: Automatically launches Microsoft Edge in fullscreen mode, intended for use with a local Ping Monitor application.
