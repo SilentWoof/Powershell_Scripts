@@ -36,17 +36,17 @@ This repository contains a personal collection of PowerShell utilities designed 
 
 #### 🚀 How to Run
 
-To bypass PowerShell’s execution policy restrictions only for this script, it is launched via a .bat file with elevated permissions. This .bat file is not included in the repository, but you can create one using the following template:
+To bypass PowerShell’s execution policy restrictions only for this script, it is launched via a .bat file with elevated permissions. Example template:
 
 @echo off  
 set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
-powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
 
-To run the script in test mode (no changes made), modify the .bat file like so:
+To run the script in test mode (no changes made):
 
 @echo off  
 set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
-powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\" -TestMode' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\" -TestMode' -Verb RunAs"
 
 📌 Note: The .bat file assumes the PowerShell script is stored in %USERPROFILE%\Powershell_Scripts\
 
@@ -89,6 +89,7 @@ This script is ideal for kiosk-style setups or monitoring dashboards that requir
 - 🖥️ Displays clear, color-coded status messages during execution  
 - 🧩 Modularized into functions (Get-DriveStatus, Unmount-Drive, Mount-Drive) for clarity and reuse  
 - ⏱️ Auto-closes the PowerShell window after 5 seconds if execution completes successfully  
+- 🛠️ Updated .bat launcher logic: prefers cloning into D:\Github if available, otherwise falls back to %USERPROFILE%\Github  
 
 #### 🚀 How to Run
 
@@ -112,7 +113,7 @@ if exist "%primaryPath%" (
     exit /b 1  
 )  
 
-:: Run with elevated PowerShell  
+:: Run with elevated PowerShell (window closes automatically after script exit)  
 powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"  
 
 endlocal  
@@ -126,6 +127,7 @@ endlocal
 - 🪟 All scripts are designed to run on Windows 11 with administrative privileges  
 - 🧾 Scripts are documented with inline comments for clarity and customization  
 - 🧭 The .bat launcher for certain scripts is included where relevant (e.g., drive mappings)  
+- 🛠️ Launchers no longer use -NoExit so PowerShell windows close automatically after execution  
 
 ---
 
