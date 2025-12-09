@@ -6,15 +6,15 @@ This repository contains a personal collection of PowerShell utilities designed 
 
 ### ⚠️ Execution Policy Warning
 
-🚫 Do not globally disable PowerShell’s execution policy (e.g., by setting it to `Unrestricted` or `Bypass` system-wide). Doing so can expose your system to malicious scripts and unintended changes. Instead, use the `-ExecutionPolicy Bypass` flag only when launching trusted scripts, and preferably within a controlled `.bat` file as shown below.
+🚫 Do not globally disable PowerShell’s execution policy (e.g., by setting it to Unrestricted or Bypass system-wide). Doing so can expose your system to malicious scripts and unintended changes. Instead, use the -ExecutionPolicy Bypass flag only when launching trusted scripts, and preferably within a controlled .bat file as shown below.
 
 🛡️ Recommended safety practices:
 
 - ⚠️🔍 Always inspect scripts before running them, especially if downloaded from the internet  
 - ⚠️🔐 Run scripts with elevated permissions only when necessary  
-- ⚠️⚙️ Use `-ExecutionPolicy Bypass` only for specific, trusted scripts—not as a permanent system setting  
+- ⚠️⚙️ Use -ExecutionPolicy Bypass only for specific, trusted scripts—not as a permanent system setting  
 - ⚠️🧼 Keep your system and antivirus software up to date  
-- ⚠️🧪 Consider using `-WhatIf` or `-TestMode` switches when available to preview script behavior  
+- ⚠️🧪 Consider using -WhatIf or -TestMode switches when available to preview script behavior  
 
 ---
 
@@ -31,28 +31,28 @@ This repository contains a personal collection of PowerShell utilities designed 
 - 🧰 Disables power management settings in the registry to prevent future dropouts  
 - 🛑 Handles protected registry keys gracefully to avoid script failure  
 - 📝 Logs all actions and outcomes to a file on the desktop  
-- 🧪 Includes a `-TestMode` switch for safe dry runs  
+- 🧪 Includes a -TestMode switch for safe dry runs  
 - 📊 Displays a clean summary and exits automatically after user confirmation  
 
 #### 🚀 How to Run
 
-To bypass PowerShell’s execution policy restrictions only for this script, it is launched via a `.bat` file with elevated permissions. This `.bat` file is not included in the repository, but you can create one using the following template:
+To bypass PowerShell’s execution policy restrictions only for this script, it is launched via a .bat file with elevated permissions. This .bat file is not included in the repository, but you can create one using the following template:
 
 @echo off  
 set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
 powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
 
-To run the script in test mode (no changes made), modify the `.bat` file like so:
+To run the script in test mode (no changes made), modify the .bat file like so:
 
 @echo off  
 set scriptPath=%USERPROFILE%\Powershell_Scripts\Intel_Ethernet_Controller_I225_V_Recovery.ps1  
 powershell -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \"%scriptPath%\" -TestMode' -Verb RunAs"
 
-📌 Note: The `.bat` file assumes the PowerShell script is stored in `%USERPROFILE%\Powershell_Scripts\`
+📌 Note: The .bat file assumes the PowerShell script is stored in %USERPROFILE%\Powershell_Scripts\
 
 #### 📁 Log File
 
-A log file named `AdapterRecoveryLog.txt` is created on the user's desktop, recording each recovery attempt with timestamps and status updates.
+A log file named AdapterRecoveryLog.txt is created on the user's desktop, recording each recovery attempt with timestamps and status updates.
 
 ---
 
@@ -72,33 +72,52 @@ This script is ideal for kiosk-style setups or monitoring dashboards that requir
 
 ---
 
-### 3. 💾 Drive Mappings Utility
+### 3. 💾 Network Drive Mappings Utility
 
-📄 File: drive_mappings.ps1  
+📄 Files:  
+- Network_Drive_Mappings\network_drive_mappings.ps1  
+- Network_Drive_Mappings\mount_network_drives.bat  
+
 🎯 Purpose: Ensures network drives are mounted to the correct letters and paths, remapping only when necessary.
 
 #### 🔧 Features
 
 - ✅ Defines a set of desired drive-to-path mappings (M, O, Q, S, U, Y)  
-- 🔍 Checks each drive individually for correctness  
+- 🔍 Checks each drive individually for correctness using modern Get-CimInstance  
 - ❌ Unmounts drives that are incorrectly mapped  
 - ➕ Mounts missing drives in the correct order  
 - 🖥️ Displays clear, color-coded status messages during execution  
+- 🧩 Modularized into functions (Get-DriveStatus, Unmount-Drive, Mount-Drive) for clarity and reuse  
 - ⏱️ Auto-closes the PowerShell window after 5 seconds if execution completes successfully  
 
 #### 🚀 How to Run
 
-Save the script as `drive_mappings.ps1` and run it with:
+Use the included .bat launcher (mount_network_drives.bat) which automatically tries multiple paths:
 
-powershell.exe -ExecutionPolicy Bypass -File "C:\Scripts\drive_mappings.ps1"
+@echo off  
+setlocal  
 
-Alternatively, create a `.bat` launcher for convenience:
+:: Define candidate paths  
+set "primaryPath=D:\Github\Powershell_Scripts\Network_Drive_Mappings\network_drive_mappings.ps1"  
+set "secondaryPath=%USERPROFILE%\Github\Powershell_Scripts\Network_Drive_Mappings\network_drive_mappings.ps1"  
 
-@echo off
-set scriptPath=%USERPROFILE%\Powershell_Scripts\drive_mappings.ps1
-powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
+:: Pick whichever exists  
+if exist "%primaryPath%" (  
+    set "scriptPath=%primaryPath%"  
+) else if exist "%secondaryPath%" (  
+    set "scriptPath=%secondaryPath%"  
+) else (  
+    echo [ERROR] Could not find network_drive_mappings.ps1 in any known location.  
+    pause  
+    exit /b 1  
+)  
 
-📌 Place the `.bat` file in your **Startup** folder (`shell:startup`) or schedule it via **Task Scheduler** to run automatically at login.
+:: Run with elevated PowerShell  
+powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"  
+
+endlocal  
+
+📌 Place the .bat file in your Startup folder (shell:startup) or schedule it via Task Scheduler to run automatically at login.
 
 ---
 
@@ -106,7 +125,7 @@ powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy By
 
 - 🪟 All scripts are designed to run on Windows 11 with administrative privileges  
 - 🧾 Scripts are documented with inline comments for clarity and customization  
-- 🧭 The `.bat` launcher for certain scripts is referenced for convenience but not included in the repository  
+- 🧭 The .bat launcher for certain scripts is included where relevant (e.g., drive mappings)  
 
 ---
 
