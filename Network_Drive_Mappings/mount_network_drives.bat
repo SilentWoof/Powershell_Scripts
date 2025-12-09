@@ -1,84 +1,101 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
-:: Repo details
-set "repoUrl=https://github.com/SilentWoof/Powershell_Scripts.git"
-set "repoName=Powershell_Scripts"
-set "subDir=Network_Drive_Mappings"
-set "scriptFile=network_drive_mappings.ps1"
+:: --- Configuration Variables ---
+set "REPO_URL=https://github.com/SilentWoof/Powershell_Scripts.git"
+set "REPO_NAME=Powershell_Scripts"
+set "REPO_DIR=D:\Github\%REPO_NAME%"
+set "FALLBACK_DIR=C:\Users\%USERNAME%\Github\%REPO_NAME%"
+set "PS_SCRIPT=Network_Drive_Mappings\network_drive_mappings.ps1"
 
-:: Candidate base paths
-set "primaryBase=D:\Github"
-set "secondaryBase=%USERPROFILE%\Github"
-
-:: Candidate full paths
-set "primaryPath=%primaryBase%\%repoName%\%subDir%\%scriptFile%"
-set "secondaryPath=%secondaryBase%\%repoName%\%subDir%\%scriptFile%"
-
-:: Function-like block to ensure repo exists and is synced
-:EnsureRepo
-if exist "%~1\%repoName%" (
-    echo Repo found at %~1\%repoName%. Syncing...
-    pushd "%~1\%repoName%"
-    git status >nul 2>&1
-    if %errorlevel%==0 (
-        git pull
-    ) else (
-        echo [WARNING] Repo at %~1\%repoName% not valid. Re-cloning...
-        rmdir /s /q "%~1\%repoName%"
-        git clone "%repoUrl%" "%~1\%repoName%"
-    )
-    popd
-) else (
-    echo Repo not found at %~1. Cloning fresh copy...
-    git clone "%repoUrl%" "%~1\%repoName%"
-)
-goto :eof
-
-:: --- Priority order ---
-:: 1. Check D:\Github
-if exist "%primaryBase%" (
-    if exist "%primaryBase%\%repoName%" (
-        call :EnsureRepo "%primaryBase%"
-    ) else (
-        echo Repo not present on D:\. Will check C:\ next...
-    )
-)
-
-:: 2. If not found/synced on D, check C:\Users\<user>\Github
-if not exist "%primaryPath%" (
-    if exist "%secondaryBase%" (
-        if exist "%secondaryBase%\%repoName%" (
-            call :EnsureRepo "%secondaryBase%"
-        ) else (
-            echo Repo not present on C:\Users. Will clone fresh...
-        )
-    )
-)
-
-:: 3. Clone fresh if neither exists
-if not exist "%primaryPath%" if not exist "%secondaryPath%" (
-    if exist "%primaryBase%" (
-        echo Cloning repo to D:\Github...
-        git clone "%repoUrl%" "%primaryBase%\%repoName%"
-    ) else (
-        echo Cloning repo to %secondaryBase%...
-        git clone "%repoUrl%" "%secondaryBase%\%repoName%"
-    )
-)
-
-:: --- Select script path ---
-if exist "%primaryPath%" (
-    set "scriptPath=%primaryPath%"
-) else if exist "%secondaryPath%" (
-    set "scriptPath=%secondaryPath%"
-) else (
-    echo [ERROR] Could not obtain %scriptFile% from GitHub repo.
+:: --- Check if Git is installed ---
+where git >nul 2>&1
+if errorlevel 1 (
+    echo Error: Git is not installed. Please install Git before proceeding.
     pause
-    exit /b 1
+    exit /b
 )
 
-:: Run with elevated PowerShell
-powershell -Command "Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"%scriptPath%\"' -Verb RunAs"
+echo [DEBUG] REPO_URL=%REPO_URL%
 
-endlocal
+:: --- Step 1: Check for the repository on the D drive ---
+echo Checking for repository on D drive...
+if exist "%REPO_DIR%\.git" (
+    echo Found repository on D drive.
+    set "TARGET_DIR=%REPO_DIR%"
+    cd /d "%TARGET_DIR%"
+    echo Updating repository...
+    git pull
+    if errorlevel 1 (
+        echo Error: Failed to update the repository on D drive.
+        if exist "%REPO_DIR%" rd /s /q "%REPO_DIR%"
+        set "TARGET_DIR=%REPO_DIR%"
+        goto clone_repo
+    )
+) else (
+    echo Repository on D drive does not exist or is not a valid Git repository.
+    if exist "%REPO_DIR%" rd /s /q "%REPO_DIR%"
+    goto check_c_drive
+)
+
+:check_c_drive
+echo Checking for repository on C drive...
+if exist "%FALLBACK_DIR%\.git" (
+    echo Found repository on C drive.
+    set "TARGET_DIR=%FALLBACK_DIR%"
+    cd /d "%TARGET_DIR%"
+    echo Updating repository...
+    git pull
+    if errorlevel 1 (
+        echo Error: Failed to update the repository on C drive.
+        if exist "%FALLBACK_DIR%" rd /s /q "%FALLBACK_DIR%"
+        set "TARGET_DIR=%FALLBACK_DIR%"
+        goto clone_repo
+    )
+) else (
+    echo Repository on C drive does not exist or is not a valid Git repository.
+    if exist "%FALLBACK_DIR%" rd /s /q "%FALLBACK_DIR%"
+    :: Do not set TARGET_DIR here — let clone_repo decide
+    goto clone_repo
+)
+
+:clone_repo
+echo Cloning repository from %REPO_URL%...
+
+:: Decide where to clone if TARGET_DIR is not already set
+if "%TARGET_DIR%"=="" (
+    if exist D: (
+        set "TARGET_DIR=%REPO_DIR%"
+    ) else (
+        set "TARGET_DIR=%FALLBACK_DIR%"
+    )
+)
+
+echo [DEBUG] Final TARGET_DIR=%TARGET_DIR%
+git clone "%REPO_URL%" "%TARGET_DIR%"
+if errorlevel 1 (
+    if "%TARGET_DIR%"=="%REPO_DIR%" (
+        echo Error: Failed to clone to D drive. Trying C drive...
+        set "TARGET_DIR=%FALLBACK_DIR%"
+        echo [DEBUG] TARGET_DIR=%TARGET_DIR%
+        git clone "%REPO_URL%" "%TARGET_DIR%"
+        if errorlevel 1 (
+            echo Error: Failed to clone to C drive.
+            pause
+            exit /b
+        )
+    ) else (
+        echo Error: Failed to clone to C drive.
+        pause
+        exit /b
+    )
+)
+
+echo Running PowerShell script: %PS_SCRIPT%
+if not exist "%TARGET_DIR%\%PS_SCRIPT%" (
+    echo Error: PowerShell script not found at %TARGET_DIR%\%PS_SCRIPT%
+    pause
+    exit /b
+)
+
+powershell -Command "Start-Process PowerShell -ArgumentList '-NoExit','-ExecutionPolicy','ByPass','-File','%TARGET_DIR%\%PS_SCRIPT%' -Verb RunAs"
