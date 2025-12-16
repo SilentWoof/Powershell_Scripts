@@ -8,28 +8,18 @@ $driveMappings = @{
     "Y:" = "\\10.10.10.250\Public"
 }
 
-function Get-DriveStatus {
-    param([string]$drive, [string]$path)
-
-    $current = Get-CimInstance Win32_NetworkConnection | Where-Object { $_.LocalName -eq $drive }
-
-    if ($current) {
-        if ($current.RemoteName -ne $path) {
-            Write-Host "$drive is mapped incorrectly to $($current.RemoteName). Marking for remap." -ForegroundColor Yellow
-            return "Incorrect"
-        } else {
-            Write-Host "$drive is correctly mapped to $path." -ForegroundColor Green
-            return "Correct"
-        }
-    } else {
-        Write-Host "$drive is not mapped. Marking for mount." -ForegroundColor Yellow
-        return "Missing"
+function Get-CurrentMappings {
+    $map = @{}
+    $connections = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 4 }
+    foreach ($conn in $connections) {
+        $map[$conn.DeviceID] = $conn.ProviderName
     }
+    return $map
 }
 
 function Unmount-Drive {
     param([string]$drive)
-    Write-Host "Unmounting incorrect mapping on $drive..." -ForegroundColor Red
+    Write-Host "Unmounting $drive..." -ForegroundColor Red
     try {
         net use $drive /delete /y | Out-Null
     } catch {
@@ -47,33 +37,40 @@ function Mount-Drive {
     }
 }
 
-Write-Host "Checking current drive mappings..." -ForegroundColor Cyan
+Write-Host "Assessing current drive mappings..." -ForegroundColor Cyan
 
-$incorrect = @()
-$missing   = @()
+$currentMappings = Get-CurrentMappings
 
-# Phase 1: Check all drives
-foreach ($drive in $driveMappings.Keys) {
-    $status = Get-DriveStatus -drive $drive -path $driveMappings[$drive]
-    switch ($status) {
-        "Incorrect" { $incorrect += $drive }
-        "Missing"   { $missing   += $drive }
+# Phase 1: Identify drives to remove
+$toRemove = @()
+
+foreach ($drive in $currentMappings.Keys) {
+    $path = $currentMappings[$drive]
+    if (-not $driveMappings.ContainsKey($drive)) {
+        # Drive letter not in desired set
+        $toRemove += $drive
+    } elseif ($driveMappings[$drive] -ne $path) {
+        # Drive letter is in desired set but mapped to wrong path
+        $toRemove += $drive
     }
 }
 
-# Phase 2: Unmount incorrect drives
-foreach ($drive in $incorrect) {
+# Phase 2: Unmount incorrect/extra drives
+foreach ($drive in $toRemove) {
     Unmount-Drive -drive $drive
 }
 
-# Phase 3: Mount missing + incorrect drives
-foreach ($drive in $missing + $incorrect) {
-    Mount-Drive -drive $drive -path $driveMappings[$drive]
+# Phase 3: Mount all desired drives
+foreach ($desiredDrive in $driveMappings.Keys) {
+    $desiredPath = $driveMappings[$desiredDrive]
+    if ($currentMappings.ContainsKey($desiredDrive) -and $currentMappings[$desiredDrive] -eq $desiredPath) {
+        Write-Host "$desiredDrive is already correctly mapped to $desiredPath." -ForegroundColor Green
+    } else {
+        Mount-Drive -drive $desiredDrive -path $desiredPath
+    }
 }
 
-Write-Host "`nAll drive checks complete." -ForegroundColor Green
-
-# Auto-close after 5 seconds
+Write-Host "`nDrive reconciliation complete." -ForegroundColor Green
 Write-Host "This window will close automatically in 5 seconds..." -ForegroundColor Magenta
 Start-Sleep -Seconds 5
 exit
