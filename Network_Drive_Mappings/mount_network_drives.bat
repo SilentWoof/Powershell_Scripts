@@ -21,6 +21,8 @@ if exist "%REPO_DIR%\.git" (
     echo Found repository on D drive.
     set "TARGET_DIR=%REPO_DIR%"
     cd /d "%TARGET_DIR%"
+    echo [DEBUG] TARGET_DIR=%TARGET_DIR%
+    cd
     echo Updating repository...
     git pull
     if errorlevel 1 (
@@ -40,6 +42,8 @@ if exist "%FALLBACK_DIR%\.git" (
     echo Found repository on C drive.
     set "TARGET_DIR=%FALLBACK_DIR%"
     cd /d "%TARGET_DIR%"
+    echo [DEBUG] TARGET_DIR=%TARGET_DIR%
+    cd
     echo Updating repository...
     git pull
     if errorlevel 1 (
