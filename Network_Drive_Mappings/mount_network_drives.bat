@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: --- Configuration Variables ---
 set "REPO_URL=https://github.com/SilentWoof/Powershell_Scripts.git"
 set "REPO_NAME=Powershell_Scripts"
-set "REPO_DIR=D:\Github\%REPO_NAME%"
+set "REPO_DIR=D:\GitHub\%REPO_NAME%"
 set "FALLBACK_DIR=C:\Users\%USERNAME%\Github\%REPO_NAME%"
 set "PS_SCRIPT=Network_Drive_Mappings\network_drive_mappings.ps1"
 
