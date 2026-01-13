@@ -16,48 +16,55 @@ if errorlevel 1 (
     exit /b
 )
 
+:: --- Check D drive repo ---
 echo Checking for repository on D drive...
-if exist "%REPO_DIR%\.git" (
+set "TARGET_DIR=%REPO_DIR%"
+if exist "%TARGET_DIR%\.git" (
     echo Found repository on D drive.
-    set "TARGET_DIR=%REPO_DIR%"
     cd /d "%TARGET_DIR%"
     echo [DEBUG] TARGET_DIR=%TARGET_DIR%
+    echo [DEBUG] CURRENT DIR:
     cd
-    echo Updating repository...
-    git pull
-    if errorlevel 1 (
-        echo Warning: Failed to update the repository on D drive.
-        echo Continuing without deleting anything.
+    if not exist "%TARGET_DIR%\.git" (
+        echo Error: .git folder not found in %TARGET_DIR%
+        echo Skipping git pull.
+    ) else (
+        echo Updating repository...
+        git pull
+        if errorlevel 1 (
+            echo Warning: Failed to update the repository on D drive.
+            echo Continuing without deleting anything.
+        )
     )
-) else (
-    echo Repository on D drive not found.
-    goto check_c_drive
+    goto run_script
 )
 
-goto run_script
-
-:check_c_drive
+:: --- Check C drive repo ---
+echo Repository on D drive not found.
 echo Checking for repository on C drive...
-if exist "%FALLBACK_DIR%\.git" (
+set "TARGET_DIR=%FALLBACK_DIR%"
+if exist "%TARGET_DIR%\.git" (
     echo Found repository on C drive.
-    set "TARGET_DIR=%FALLBACK_DIR%"
     cd /d "%TARGET_DIR%"
     echo [DEBUG] TARGET_DIR=%TARGET_DIR%
+    echo [DEBUG] CURRENT DIR:
     cd
-    echo Updating repository...
-    git pull
-    if errorlevel 1 (
-        echo Warning: Failed to update the repository on C drive.
-        echo Continuing without deleting anything.
+    if not exist "%TARGET_DIR%\.git" (
+        echo Error: .git folder not found in %TARGET_DIR%
+        echo Skipping git pull.
+    ) else (
+        echo Updating repository...
+        git pull
+        if errorlevel 1 (
+            echo Warning: Failed to update the repository on C drive.
+            echo Continuing without deleting anything.
+        )
     )
-) else (
-    echo Repository not found on C drive either.
-    goto clone_repo
+    goto run_script
 )
 
-goto run_script
-
-:clone_repo
+:: --- Clone repo if not found ---
+echo Repository not found on C drive either.
 echo Cloning repository from %REPO_URL%...
 
 if exist D: (
