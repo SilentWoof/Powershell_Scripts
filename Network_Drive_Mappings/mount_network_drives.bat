@@ -98,4 +98,4 @@ if not exist "%TARGET_DIR%\%PS_SCRIPT%" (
     exit /b
 )
 
-powershell -Command "Start-Process PowerShell -ArgumentList '-NoExit','-ExecutionPolicy','ByPass','-File','%TARGET_DIR%\%PS_SCRIPT%' -Verb RunAs"
+powershell -ExecutionPolicy Bypass -File "%TARGET_DIR%\%PS_SCRIPT%"
