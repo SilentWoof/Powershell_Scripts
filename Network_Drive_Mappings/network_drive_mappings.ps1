@@ -71,6 +71,6 @@ foreach ($desiredDrive in $driveMappings.Keys) {
 }
 
 Write-Host "`nDrive reconciliation complete." -ForegroundColor Green
-Write-Host "This window will close automatically in 5 seconds..." -ForegroundColor Magenta
-Start-Sleep -Seconds 5
+Write-Host "Press any key to close this window..." -ForegroundColor Magenta
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 exit
